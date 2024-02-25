@@ -11,27 +11,28 @@ use ethers::{
     signers::{LocalWallet, Signer},
     types::Address,
 };
-use eyre::eyre;
 use std::io::{BufRead, BufReader};
 use std::str::FromStr;
 use std::sync::Arc;
 
 /// Your private key file path.
-const PRIV_KEY_PATH: &str = "PRIV_KEY_PATH";
+const PRIV_KEY_PATH: &str = "privkey.txt";
 
 /// Stylus RPC endpoint url.
-const RPC_URL: &str = "RPC_URL";
+const RPC_URL: &str = "https://stylus-testnet.arbitrum.io/rpc";
 
 /// Deployed pragram address.
-const STYLUS_PROGRAM_ADDRESS: &str = "STYLUS_PROGRAM_ADDRESS";
+const STYLUS_PROGRAM_ADDRESS: &str = "0x8A99643dcF67bE8a94b6F8d7dA21B8634b2fa44E";
 
 #[tokio::main]
 async fn main() -> eyre::Result<()> {
-    let priv_key_path =
-        std::env::var(PRIV_KEY_PATH).map_err(|_| eyre!("No {} env var set", PRIV_KEY_PATH))?;
-    let rpc_url = std::env::var(RPC_URL).map_err(|_| eyre!("No {} env var set", RPC_URL))?;
-    let program_address = std::env::var(STYLUS_PROGRAM_ADDRESS)
-        .map_err(|_| eyre!("No {} env var set", STYLUS_PROGRAM_ADDRESS))?;
+    // We are not reading from ENV
+    // let priv_key_path =
+    // std::env::var(PRIV_KEY_PATH).map_err(|_| eyre!("No {} env var set", PRIV_KEY_PATH))?;
+
+    // let rpc_url = std::env::var(RPC_URL).map_err(|_| eyre!("No {} env var set", RPC_URL))?;
+    // let program_address = std::env::var(STYLUS_PROGRAM_ADDRESS)
+    //     .map_err(|_| eyre!("No {} env var set", STYLUS_PROGRAM_ADDRESS))?;
     abigen!(
         Counter,
         r#"[
@@ -41,10 +42,10 @@ async fn main() -> eyre::Result<()> {
         ]"#
     );
 
-    let provider = Provider::<Http>::try_from(rpc_url)?;
-    let address: Address = program_address.parse()?;
+    let provider = Provider::<Http>::try_from(RPC_URL)?;
+    let address: Address = STYLUS_PROGRAM_ADDRESS.parse()?;
 
-    let privkey = read_secret_from_file(&priv_key_path)?;
+    let privkey = read_secret_from_file(PRIV_KEY_PATH)?;
     let wallet = LocalWallet::from_str(&privkey)?;
     let chain_id = provider.get_chainid().await?.as_u64();
     let client = Arc::new(SignerMiddleware::new(
